@@ -195,6 +195,11 @@ end
   ---@param w number
   ---@param h number
   function _application:initialize(x, y, w, h)
+    x = x or 1
+    y = y or 1
+    w = w or select(1, dbuf.getResolution())
+    h = h or select(1, dbuf.getResolution())
+
     ui.container.initialize(self, x, y, w, h)
 
     self.should_close = false
