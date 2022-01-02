@@ -1,7 +1,7 @@
 local cproxy, clist = component.proxy, component.list
 
 local gpu = cproxy(clist("gpu")())
-local scr = clist("screen")()
+local scr = clist("scr")()
 
 -- cinvk(gpu, "bind", scr)
 gpu.bind(scr)
@@ -91,6 +91,11 @@ else
     local msg = "select a boot device: "
 
     local max_width = #msg
+    for i, loc in ipairs(blocs) do
+      local d,f,n = table.unpack(loc)
+      local len = 2 + (n and #n or #d+1+#f)
+      if len > #msg then max_width = len end
+    end
 
     for i,loc in ipairs(blocs) do
       local drive, file, name = table.unpack(loc)
