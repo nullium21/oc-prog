@@ -100,6 +100,10 @@ end
 local function download(url, on_progress)
   local h = net.request(url)
 
+  if h.finishConnect then -- wait until got response
+    while not h.finishConnect() do end
+  end
+
   if (h.finishConnect and h.finishConnect()) or not h.finishConnect then
     local resp_code, resp_msg, headers = h.response()
 
