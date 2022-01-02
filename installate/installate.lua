@@ -2,14 +2,10 @@ local gpu = require("component").gpu
 local net = require("component").internet
 local event = require("event")
 local fs = require("filesystem")
+local sh = require("shell")
 
 local szx, szy = gpu.maxResolution()
 gpu.setResolution(szx, szy)
-
-gpu.setBackground(0xe1e1e1)
-gpu.fill(1,1, szx,szy, ' ')
-
-gpu.setForeground(0x5a5a5a)
 
 local function draw_text_centered(text, y)
   local x = math.floor((szx - #text) / 2)
@@ -19,13 +15,6 @@ end
 local sources = {
   github = function (it) return string.format("https://raw.githubusercontent.com/%s/%s/%s", it.repo, it.branch or "main", it.path) end
 }
-
-local installs = {
-  ["/eeprom.lua"] = { source = "github", repo = "nullium21/oc-prog", path = "gui-eeprom/eeprom.lua" },
-  ["/eeprom.min"] = { source = "github", repo = "nullium21/oc-prog", path = "gui-eeprom/eeprom.min.lua" }
-}
-
-local postinstall = {}
 
 -- Files to install:
 --
@@ -40,10 +29,13 @@ local postinstall = {}
 -- 100% ##########
 
 local function draw_first_screen(state)
+  local installs = state.installs
+  local title = state.pkg_name
+
   gpu.setBackground(0xe1e1e1)
   gpu.fill(1,1, szx,szy, ' ')
 
-  local total_hgt = (#installs > 0) and (#installs + 4) or 2
+  local total_hgt = (#installs > 0) and (#installs + 6) or 4
 
   local y = math.floor((szy-total_hgt) / 2)
 
@@ -57,6 +49,9 @@ local function draw_first_screen(state)
 
     table.insert(strings, s)
   end
+
+  draw_text_centered("Installing " .. title .. "...", y)
+  y = y + 2
 
   draw_text_centered("Files to install:", y)
   y = y + 2
@@ -86,9 +81,9 @@ local function draw_first_screen(state)
   end
 end
 
-local function first_screen()
+local function first_screen(pkg_name, installs)
   local state = {
-    selected_button = 1
+    selected_button = 1, pkg_name = pkg_name, installs = installs
   }
 
   while true do
@@ -239,13 +234,55 @@ local function exit_screen(statuses)
   end
 end
 
-if first_screen() then
-  local statuses = {}
+local function postinstall_screen(fn)
+  gpu.setBackground(0xe1e1e1)
+  gpu.fill(1,1, szx,szy, ' ')
 
-  for path, data in pairs(installs) do
-    local url = sources[data.source](data)
-    statuses[path] = download_screen(path, url)
+  local y = math.floor((szy - 3) / 2)
+
+  draw_text_centered("Running post-installation actions...", y)
+  y = y + 2
+
+  local isok, reason = pcall(fn)
+
+  gpu.setBackground(0xb4b4b4)
+  draw_text_centered(" [ Next ] ", y)
+
+  while true do
+    local evt = table.pack(event.pull())
+    if evt[1] == "key_down" and evt[4] == 28 then
+      return isok or reason
+    end
   end
+end
 
-  exit_screen(statuses)
+local args, opt = sh.parse(...)
+
+if #args == 1 then
+  local pkg = dofile(args[1])
+  local installs = pkg.files
+  local postinstall = pkg.postinstall
+
+  gpu.setBackground(0xe1e1e1)
+  gpu.fill(1,1, szx,szy, ' ')
+
+  gpu.setForeground(0x5a5a5a)
+
+  if first_screen(pkg.name, installs) then
+    local statuses = {}
+
+    for path, data in pairs(installs) do
+      local url = sources[data.source](data)
+      statuses[path] = download_screen(path, url)
+    end
+
+    if postinstall then
+      statuses.postinstall = postinstall_screen(postinstall)
+    end
+
+    exit_screen(statuses)
+
+    gpu.setBackground(0x000000)
+    gpu.fill(1,1, szx,szy, ' ')
+  end
 end
