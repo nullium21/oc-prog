@@ -13,7 +13,9 @@ local function draw_text_centered(text, y)
 end
 
 local sources = {
-  github = function (it) return string.format("https://raw.githubusercontent.com/%s/%s/%s", it.repo, it.branch or "main", it.path) end
+  github = function (it) return string.format("https://raw.githubusercontent.com/%s/%s/%s", it.repo, it.branch or "main", it.path) end,
+  pastebin = function (it) return "https://pastebin.com/raw/" .. it.id end,
+  gist = function (it) return string.format("https://gist.github.com/%s/%s/raw/", it.owner, it.id) end,
 }
 
 local function draw_first_screen(state)
