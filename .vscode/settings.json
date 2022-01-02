@@ -2,5 +2,9 @@
     "Lua.diagnostics.globals": [
         "component",
         "computer"
+    ],
+    "editor.tabSize": 2,
+    "Lua.workspace.library": [
+        "/data/misc/ocvm/0/hdd/lib"
     ]
 }
