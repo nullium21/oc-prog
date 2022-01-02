@@ -1,7 +1,7 @@
 local cproxy, clist = component.proxy, component.list
 
 local gpu = cproxy(clist("gpu")())
-local scr = cproxy(clist("screen")())
+local scr = clist("screen")()
 
 -- cinvk(gpu, "bind", scr)
 gpu.bind(scr)
