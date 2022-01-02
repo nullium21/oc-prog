@@ -1,5 +1,5 @@
 return {
-  name = "GUI Bootloader",
+  name = "Null's GUI Bootloader",
 
   files = {
     ["/eeprom.min.lua"] = { source = "github", repo = "nullium21/oc-prog", path = "gui-eeprom/eeprom.min.lua" }
