@@ -249,13 +249,19 @@ if #args == 1 then
   if first_screen(pkg.name, installs) then
     local statuses = {}
 
+    local all_ok = true
     for path, data in pairs(installs) do
       local url = sources[data.source](data)
       statuses[path] = download_screen(path, url)
+      all_ok = all_ok and (statuses[path] == true)
     end
 
     if postinstall then
-      statuses.postinstall = postinstall_screen(postinstall)
+      if all_ok then
+        statuses.postinstall = postinstall_screen(postinstall)
+      else
+        statuses.postinstall = 'skipped: installation errors'
+      end
     end
 
     exit_screen(statuses)
