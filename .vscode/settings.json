@@ -6,5 +6,13 @@
     "editor.tabSize": 2,
     "Lua.workspace.library": [
         "/data/misc/ocvm/0/hdd/lib"
-    ]
+    ],
+    "Lua.completion.callSnippet": "Both",
+    "Lua.hint.enable": true,
+    "Lua.hint.setType": true,
+    "Lua.IntelliSense.traceBeSetted": true,
+    "Lua.IntelliSense.traceFieldInject": true,
+    "Lua.IntelliSense.traceLocalSet": true,
+    "Lua.IntelliSense.traceReturn": true,
+    "Lua.runtime.version": "Lua 5.3"
 }
