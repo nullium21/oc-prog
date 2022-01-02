@@ -16,18 +16,6 @@ local sources = {
   github = function (it) return string.format("https://raw.githubusercontent.com/%s/%s/%s", it.repo, it.branch or "main", it.path) end
 }
 
--- Files to install:
---
---  - /eeprom.lua (from github: repo=nullium21/oc-progs, path=gui-eeprom/eeprom.lua)
---
--- [ OK ] [ Cancel ]
-
--- No files will be installed.
--- [ OK ]
-
--- Installing /eeprom.lua...
--- 100% ##########
-
 local function draw_first_screen(state)
   local installs = state.installs
   local title = state.pkg_name
@@ -185,16 +173,6 @@ local function download_screen(path, url)
     return reason
   end
 end
-
--- Installation finished.
---
--- Installed successfully:
--- - /eeprom.min
---
--- Installed with errors:
--- - /eeprom.lua: ...
---
--- [ Exit ]
 
 local function exit_screen(statuses)
   gpu.setBackground(0xe1e1e1)
