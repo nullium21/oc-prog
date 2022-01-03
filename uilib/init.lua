@@ -11,6 +11,38 @@ local screen_event_type = {
 ---@class Ui
 local ui = {}
 
+--[[ Alignment ]] do
+  ---@alias Ui.Alignment "'start'"|"'center'"|"'end'"
+
+  ---@param off number
+  ---@param container_len number
+  ---@param align Ui.Alignment
+  ---@param obj_len number
+  function ui.align_axis(off, container_len, align, obj_len)
+    if align == 'start' then
+      return off
+    elseif align == 'center' then
+      return off + (container_len - obj_len) / 2
+    else
+      return off + (container_len - obj_len)
+    end
+  end
+
+  ---@param x number
+  ---@param y number
+  ---@param container_w number
+  ---@param container_h number
+  ---@param align_x Ui.Alignment
+  ---@param align_y Ui.Alignment
+  ---@param obj_w number
+  ---@param obj_h number
+  ---@return number, number
+  function ui.align(x, y, container_w, container_h, align_x, align_y, obj_w, obj_h)
+    return ui.align_axis(x, container_w, align_x, obj_w),
+           ui.align_axis(y, container_h, align_y, obj_h)
+  end
+end
+
 --[[ Object ]] do
   ---@class Ui.Object: Object
   local _object = object:extend()
@@ -279,6 +311,53 @@ end
   end
 
   ui.application = _application
+end
+
+--[[ Label ]] do
+  ---@class Ui.Label: Ui.Object
+  local _label = ui.object:extend()
+
+  ---@class Ui.Label.Args
+  ---@field public align_x Ui.Alignment
+  ---@field public align_y Ui.Alignment
+  ---@field public fg_color number
+  ---@field public bg_color number
+
+  ---@param text string
+  ---@param args Ui.Label.Args
+  ---@param x number
+  ---@param y number
+  ---@param w number
+  ---@param h number
+  function _label:initialize(text, args, x, y, w, h)
+    ui.object.initialize(self, x, y, w, h)
+
+    self.text = text
+
+    ---@type Ui.Alignment
+    self.align_x = args.align_x or 'start'
+    ---@type Ui.Alignment
+    self.align_y = args.align_x or 'start'
+
+    self.fg_color = args.fg_color
+    self.bg_color = args.bg_color
+  end
+
+  function _label:draw()
+    local wrapped_text, text_w, text_h =
+      util.measure_and_wrap_text(self.text, self.width, self.height)
+
+    local text_x, text_y = ui.align(
+      self.x, self.y,
+      self.width, self.height,
+      self.align_x, self.align_y,
+      text_w, text_h)
+
+    for i, line in ipairs(wrapped_text) do
+      dbuf.drawText(math.floor(text_x), math.floor(text_y), self.fg_color, line)
+      text_y = text_y + 1
+    end
+  end
 end
 
 return ui
