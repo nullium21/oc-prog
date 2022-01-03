@@ -149,14 +149,23 @@ end
 
     ---@type Ui.Object[]
     self.children = {}
+
+    ---left, top, right, bottom
+    ---@type integer[]
+    self.padding = { 0, 0, 0, 0 }
   end
 
   ---@generic T
   ---@param self T
   ---@return T
   function _container:draw()
+    local px = self.x + self.padding[1]
+    local py = self.y + self.padding[2]
+    local pw = self.width  - self.padding[1] - self.padding[3]
+    local ph = self.height - self.padding[2] - self.padding[4]
+
     local rx1, ry1, rx2, ry2 = dbuf.getDrawLimit()
-    local ix1, iy1, ix2, iy2 = util.rect_intersect(rx1, ry1, rx2, ry2, self.x, self.y, self.x+self.width-1, self.y+self.height-1)
+    local ix1, iy1, ix2, iy2 = util.rect_intersect(rx1, ry1, rx2, ry2, px, py, px+pw-1, py+ph-1)
 
     if ix1 then
       dbuf.setDrawLimit(ix1, iy1, ix2, iy2)
@@ -164,7 +173,7 @@ end
       for i = 1, #self.children do
         local child = self.children[i]
         if child.visible then
-          child.x, child.y = child.local_x + self.x - 1, child.local_y + self.y - 1
+          child.x, child.y = child.local_x + px - 1, child.local_y + py - 1
           child:draw()
         end
       end
