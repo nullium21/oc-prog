@@ -421,8 +421,7 @@ end
   ---@param col number
   function _grid:set(child, row, col)
     local is_added, idx = pcall(child.index, child)
-    if not is_added then idx = #self.children; table.insert(self.children, child) end
-
+    if not is_added then idx = #self.children+1; self:add(child) end
     self.child_positions[idx] = { row, col }
   end
 
@@ -433,19 +432,19 @@ end
   ---@param num integer
   local function fix_line_param(self, lst, all_childs, param, num)
     for i = 1, num do
-      local max = lst[i]
+      local max = self[lst][i]
       local childs = all_childs[i]
-      for _, child in ipairs(childs) do
+      for _, child in ipairs(childs or {}) do
         if child[param] > max then max = child[param] end
       end
-      lst[i] = max
+      self[lst][i] = max
     end
   end
 
   function _grid:update_sizes()
     local row_c, col_c = {}, {}
 
-    for i, pos in ipairs(self.child_positions) do
+    for i, pos in pairs(self.child_positions) do
       local r, c = table.unpack(pos)
       if not row_c[r] then row_c[r] = {} end
       if not col_c[c] then col_c[c] = {} end
@@ -456,18 +455,18 @@ end
     end
 
     -- fix row heights
-    fix_line_param(self, self.row_h, row_c, "height", self.num_rows)
+    fix_line_param(self, "row_h", row_c, "height", self.num_rows)
     -- fix column widths
-    fix_line_param(self, self.col_w, col_c, "width", self.num_cols)
+    fix_line_param(self, "col_w", col_c, "width", self.num_cols)
   end
 
   function _grid:update_coords()
-    ---@type Ui.Object[]
+    ---@type Ui.Object[][]
     local row_c = {}
-    ---@type Ui.Object[]
+    ---@type Ui.Object[][]
     local col_c = {}
 
-    for i, pos in ipairs(self.child_positions) do
+    for i, pos in pairs(self.child_positions) do
       local r, c = table.unpack(pos)
       if not row_c[r] then row_c[r] = {} end
       if not col_c[c] then col_c[c] = {} end
@@ -478,19 +477,25 @@ end
     end
 
     local x = 1
-    for i,c in ipairs(row_c) do
+    for i,cs in pairs(row_c) do
       if i > 1 then x = x + self.spacing end
 
-      c.x = x
-      x = x + self.col_w[c:index()]
+      for j,c in ipairs(cs) do
+        if c then c.local_x = x; c.x = x end
+        x = x + self.col_w[i]
+        self.children[c:index()] = c
+      end
     end
 
     local y = 1
-    for i,c in ipairs(col_c) do
+    for i,cs in pairs(col_c) do
       if i > 1 then y = y + self.spacing end
 
-      c.y = y
-      y = y + self.row_h[c:index()]
+      for j,c in ipairs(cs) do
+        if c then c.local_y = y; c.y = y end
+        y = y + self.row_h[i]
+        self.children[c:index()] = c
+      end
     end
   end
 
