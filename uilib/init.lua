@@ -532,4 +532,79 @@ end
   ui.grid = _grid
 end
 
+--[[ Pressable ]] do
+  ---@class Ui.Pressable: Ui.Container
+  local _pressable = ui.container:extend()
+
+  ---@param x number
+  ---@param y number
+  ---@param w number
+  ---@param h number
+  function _pressable:initialize(x, y, w, h)
+    ui.container.initialize(self, x, y, w, h)
+    self.events_pass_through = false
+
+    self.pressed = false
+  end
+
+  ---@param app Ui.Application
+  function _pressable:on_press(app) end
+  ---@param app Ui.Application
+  function _pressable:on_release(app) end
+
+  ---@param app Ui.Application
+  ---@param e any[]
+  function _pressable:handle_event(app, e)
+    if e[1] == "touch" then
+      self:on_press(app)
+    elseif e[1] == "drop" then
+      self:on_release(app)
+    end
+  end
+
+  ui.pressable = _pressable
+end
+
+--[[ Button ]] do
+  ---@class Ui.Button: Ui.Pressable
+  local _button = ui.pressable:extend()
+
+  ---@class Ui.Button.Args
+  ---@field public bg_normal  integer
+  ---@field public bg_pressed integer
+  ---@field public padding    integer|integer[]
+
+  ---@param args Ui.Button.Args
+  ---@param x number
+  ---@param y number
+  ---@param w number
+  ---@param h number
+  function _button:initialize(args, x, y, w, h)
+    ui.pressable.initialize(self, x, y, w, h)
+
+    self.bg_normal  = args.bg_normal  or -1 -- -1=nothing
+    self.bg_pressed = args.bg_pressed or self.bg_normal
+
+    if type(args.padding) == 'number' then
+      self.padding = { args.padding, args.padding, args.padding, args.padding }
+    elseif type(args.padding) == 'table' then
+      ---@type integer[]
+      self.padding = args.padding
+    end
+  end
+
+  ---@param app Ui.Application
+  function _button:action(app) end
+
+  function _button:on_press()
+    self.bg_color = self.bg_pressed
+  end
+
+  ---@param app Ui.Application
+  function _button:on_release(app)
+    self.bg_color = self.bg_normal
+    self:action(app)
+  end
+end
+
 return ui
