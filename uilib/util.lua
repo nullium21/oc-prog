@@ -24,9 +24,11 @@ function util.measure_and_wrap_text(text, max_w, max_h)
     local ch = text:sub(i, i)
 
     if ch == '\n' then
+      max_width = math.max(max_width, #cur_line)
       table.insert(lines, cur_line)
       cur_line = ""
-    elseif (#text+1) >= max_w then
+    elseif (#cur_line+1) >= max_w then
+      max_width = math.max(max_width, #cur_line)
       table.insert(lines, cur_line)
       cur_line = ch
     else
