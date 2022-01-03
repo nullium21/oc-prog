@@ -21,7 +21,7 @@ function util.measure_and_wrap_text(text, max_w, max_h)
   local cur_line = ""
   local max_width = 0
   for i = 1, #text do
-    local ch = text:sub(i, i+1)
+    local ch = text:sub(i, i)
 
     if ch == '\n' then
       table.insert(lines, cur_line)
