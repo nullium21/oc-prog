@@ -44,6 +44,8 @@ local ui = {}
 end
 
 --[[ Object ]] do
+  ---@alias Ui.EventHandler fun(self:Ui.Object,app:Ui.Application,e:any[])
+
   ---@class Ui.Object: Object
   local _object = object:extend()
 
@@ -68,6 +70,9 @@ end
 
     self.events_pass_through = true
     self.enabled = true
+
+    ---@type table<string,Ui.EventHandler>
+    self.event_handlers = {}
   end
 
   ---@generic T
@@ -284,7 +289,7 @@ end
           if child.children then
             nx1, ny1, nx2, ny2 = util.rect_intersect(ix1, iy2, ix1, iy2, child.x, child.y, child.x+child.width-1, child.y+child.height-1)
 
-            if nx1 and handle_event(child, app, nx1, ny1, nx2, ny2) then
+            if nx1 and handle_event(child, app, e, nx1, ny1, nx2, ny2) then
               return true
             end
           else
@@ -312,6 +317,7 @@ end
 
       handle_event(self, self, e, self.x, self.y, self.x+self.width-1, self.y+self.height-1)
 
+      self:draw()
     until self.should_close
     self.should_close = false
   end
