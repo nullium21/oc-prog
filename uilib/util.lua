@@ -37,6 +37,7 @@ function util.measure_and_wrap_text(text, max_w, max_h)
   end
 
   if cur_line ~= "" then
+    max_width = math.max(max_width, #cur_line)
     table.insert(lines, cur_line)
   end
 
