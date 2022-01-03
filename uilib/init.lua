@@ -366,4 +366,143 @@ end
   ui.label = _label
 end
 
+--[[ Grid ]] do
+  ---@class Ui.Grid: Ui.Container
+  local _grid = ui.container:extend()
+
+  ---@class Ui.Layout.Args
+  ---@field public num_rows integer
+  ---@field public num_cols integer
+  ---@field public spacing  integer
+  ---@field public row_h    integer|integer[] @-1 (default) for dynamic
+  ---@field public col_w    integer|integer[] @-1 (default) for dynamic
+
+  ---@param args Ui.Layout.Args
+  ---@param x number
+  ---@param y number
+  ---@param w number
+  ---@param h number
+  function _grid:initialize(args, x, y, w, h)
+    ui.container.initialize(self, x, y, w, h)
+
+    self.default_row = 1
+    self.default_col = 1
+
+    self.num_rows = args.num_rows or 1
+    self.num_cols = args.num_cols or 1
+    self.spacing  = args.spacing  or 0
+
+    args.row_h = args.row_h or -1
+    args.col_w = args.col_w or -1
+
+    ---`[child_idx]=row,col`
+    ---@type integer[][]
+    self.child_positions = {}
+
+    if type(args.row_h) == 'number' then
+      self.row_h = {}
+      for i = 1, self.num_rows do self.row_h[i] = args.row_h end
+    else
+      ---@type integer[]
+      self.row_h = args.row_h
+    end
+
+    if type(args.col_w) == 'number' then
+      self.col_w = {}
+      for i = 1, self.num_cols do self.col_w[i] = args.col_w end
+    else
+      ---@type integer[]
+      self.col_w = args.col_w
+    end
+  end
+
+  ---@param child Ui.Object
+  ---@param row number
+  ---@param col number
+  function _grid:set(child, row, col)
+    local is_added, idx = pcall(child.index, child)
+    if not is_added then idx = #self.children; table.insert(self.children, child) end
+
+    self.child_positions[idx] = { row, col }
+  end
+
+  ---@param self Ui.Grid
+  ---@param lst integer[]
+  ---@param all_childs Ui.Object[][]
+  ---@param param string
+  ---@param num integer
+  local function fix_line_param(self, lst, all_childs, param, num)
+    for i = 1, num do
+      local max = lst[i]
+      local childs = all_childs[i]
+      for _, child in ipairs(childs) do
+        if child[param] > max then max = child[param] end
+      end
+      lst[i] = max
+    end
+  end
+
+  function _grid:update_sizes()
+    local row_c, col_c = {}, {}
+
+    for i, pos in ipairs(self.child_positions) do
+      local r, c = table.unpack(pos)
+      if not row_c[r] then row_c[r] = {} end
+      if not col_c[c] then col_c[c] = {} end
+
+      local child = self.children[i]
+      table.insert(row_c[r], child)
+      table.insert(col_c[c], child)
+    end
+
+    -- fix row heights
+    fix_line_param(self, self.row_h, row_c, "height", self.num_rows)
+    -- fix column widths
+    fix_line_param(self, self.col_w, col_c, "width", self.num_cols)
+  end
+
+  function _grid:update_coords()
+    ---@type Ui.Object[]
+    local row_c = {}
+    ---@type Ui.Object[]
+    local col_c = {}
+
+    for i, pos in ipairs(self.child_positions) do
+      local r, c = table.unpack(pos)
+      if not row_c[r] then row_c[r] = {} end
+      if not col_c[c] then col_c[c] = {} end
+
+      local child = self.children[i]
+      table.insert(row_c[r], child)
+      table.insert(col_c[c], child)
+    end
+
+    local x = 1
+    for i,c in ipairs(row_c) do
+      if i > 1 then x = x + self.spacing end
+
+      c.x = x
+      x = x + self.col_w[c:index()]
+    end
+
+    local y = 1
+    for i,c in ipairs(col_c) do
+      if i > 1 then y = y + self.spacing end
+
+      c.y = y
+      y = y + self.row_h[c:index()]
+    end
+  end
+
+  function _grid:draw()
+    self:update_sizes()
+    self:update_coords()
+    ui.container.draw(self)
+
+    return self
+  end
+
+  ui.grid = _grid
+end
+
 return ui
