@@ -358,6 +358,8 @@ end
       text_y = text_y + 1
     end
   end
+
+  ui.label = _label
 end
 
 return ui
