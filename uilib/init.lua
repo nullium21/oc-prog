@@ -153,12 +153,19 @@ end
     ---left, top, right, bottom
     ---@type integer[]
     self.padding = { 0, 0, 0, 0 }
+
+    ---@type integer
+    self.bg_color = nil
   end
 
   ---@generic T
   ---@param self T
   ---@return T
   function _container:draw()
+    if self.bg_color then
+      dbuf.drawRectangle(self.x, self.y, self.width, self.height, self.bg_color, 0, ' ')
+    end
+
     local px = self.x + self.padding[1]
     local py = self.y + self.padding[2]
     local pw = self.width  - self.padding[1] - self.padding[3]
