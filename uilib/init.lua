@@ -353,6 +353,10 @@ end
       self.align_x, self.align_y,
       text_w, text_h)
 
+    if self.bg_color then
+      dbuf.drawRectangle(self.x, self.y, self.width, self.height, self.bg_color, self.fg_color, ' ')
+    end
+    
     for i, line in ipairs(wrapped_text) do
       dbuf.drawText(math.floor(text_x), math.floor(text_y), self.fg_color, line)
       text_y = text_y + 1
