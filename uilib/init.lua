@@ -541,7 +541,6 @@ end
   ---@param app Ui.Application
   ---@param e any[]
   function _pressable:handle_event(app, e)
-    print(app, table.unpack(e))
     if e[1] == "touch" then
       self:on_press(app)
     elseif e[1] == "drop" then
