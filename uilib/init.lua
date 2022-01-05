@@ -68,7 +68,7 @@ end
     ---@type number
     self.local_y = nil
 
-    self.events_pass_through = true
+    self.events_pass_through = false
     self.enabled = true
 
     ---@type table<string,Ui.EventHandler>
@@ -267,46 +267,32 @@ end
   ---@param iy2 number
   ---@return boolean
   local function handle_event(self, app, e, ix1, iy1, ix2, iy2)
-    local is_scr_event = screen_event_type[e[1]] or false
+    -- if event happened in ix1iy1-ix2-iy2 rectangle:
+    --  handle(self, ...) if self.enabled
+    --  for each visible child *from end to start*:
+    --   if event happened in its rect, handle(child, ...)
 
-    if (not is_scr_event) or (
-      ix1 and e[3] >= ix1 and e[3] <= ix2 and e[4] >= iy1 and e[4] <= iy2
-    ) then
-      local passed = false
-      local nx1, ny1, nx2, ny2
+    local e1, e3, e4 = e[1], e[3], e[4]
+    local is_scr_event = screen_event_type[e1] or false
 
-      if is_scr_event then
-        if self.enabled then self:handle_event(app, e) end
-        passed = not self.events_pass_through
-      else
-        self:handle_event(app, e)
-      end
+    if (not is_scr_event) or (util.is_in_rect(e3, e4, ix1, iy1, ix2, iy2)) then
+      if self.enabled then self:handle_event(app, e) end
 
       for i = #self.children, 1, -1 do
         local child = self.children[i]
 
         if child.visible then
-          if child.children then
-            nx1, ny1, nx2, ny2 = util.rect_intersect(ix1, iy2, ix1, iy2, child.x, child.y, child.x+child.width-1, child.y+child.height-1)
+          local nx1, ny1, nx2, ny2
+          if is_scr_event then
+            nx1, ny1, nx2, ny2 = util.rect_intersect(ix1, iy1, ix2, iy2, child.x, child.y, child.x+child.width-1, child.y+child.height-1)
+          end
 
-            if nx1 and handle_event(child, app, e, nx1, ny1, nx2, ny2) then
-              return true
-            end
-          else
-            if is_scr_event then
-              if e[3] >= child.x and e[3] <= child.x+child.width-1 and e[4] >= child.y and e[4] <= child.y+child.height-1 then
-                child:handle_event(app, e)
-
-                if not child.events_pass_through then return true end
-              end
-            else
-              child:handle_event(app, e)
-            end
+          if (nx1 or not is_scr_event) and child.enabled then
+            if child.children then handle_event(child, app, e, nx1, ny1, nx2, ny2)
+            else child:handle_event(app, e) end
           end
         end
       end
-
-      if passed then return true end
     end
   end
 
@@ -555,6 +541,7 @@ end
   ---@param app Ui.Application
   ---@param e any[]
   function _pressable:handle_event(app, e)
+    print(app, table.unpack(e))
     if e[1] == "touch" then
       self:on_press(app)
     elseif e[1] == "drop" then
@@ -605,6 +592,8 @@ end
     self.bg_color = self.bg_normal
     self:action(app)
   end
+
+  ui.button = _button
 end
 
 return ui

@@ -12,6 +12,10 @@ function util.rect_intersect(ax1, ay1, ax2, ay2, bx1, by1, bx2, by2)
 	end
 end
 
+function util.is_in_rect(x, y, x1, y1, x2, y2)
+  return x >= x1 and x <= x2 and y >= y1 and y <= y2
+end
+
 ---@param text string
 ---@param max_w number
 ---@param max_h number
